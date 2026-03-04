@@ -1,10 +1,31 @@
+import React from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import Globe from "./globe"
+import { fetchScholarStats } from "@/lib/google-scholar"
+import { GraduationCap, Star, GitCommitHorizontal } from "lucide-react"
+
+function HuggingFaceIcon({ size = 16 }: { size?: number }) {
+    return (
+        <svg
+            role="img"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="currentColor"
+            aria-label="Hugging Face"
+            width={size}
+            height={size}
+        >
+            <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 1.5c5.799 0 10.5 4.701 10.5 10.5S17.799 22.5 12 22.5 1.5 17.799 1.5 12 6.201 1.5 12 1.5zm-3.5 6a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm7 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm-8.25 5.5c-.138 0-.25.112-.25.25 0 2.63 2.12 4.75 4.75 4.75s4.75-2.12 4.75-4.75c0-.138-.112-.25-.25-.25H7.25zm1.314 1h6.872C15.07 15.08 13.65 16 12 16c-1.65 0-3.07-.92-3.436-2z" />
+        </svg>
+    )
+}
 
 const GITHUB_USERNAME = "janstrich"
+const SCHOLAR_USER_ID = "ZOV6IUEAAAAJ"
+const SCHOLAR_URL = `https://scholar.google.com/citations?user=${SCHOLAR_USER_ID}`
 
 interface GitHubRepo {
     stargazers_count: number
@@ -29,14 +50,24 @@ async function getGitHubStats() {
 }
 
 export default async function About() {
-    const { stars } = await getGitHubStats()
+    const [ghResult, scholarResult] = await Promise.allSettled([
+        getGitHubStats(),
+        fetchScholarStats(SCHOLAR_USER_ID),
+    ])
+    const { stars } = ghResult.status === "fulfilled" ? ghResult.value : { stars: 0 }
+    const scholar = scholarResult.status === "fulfilled" ? scholarResult.value : null
 
-    const stats = [
-        { label: "GitHub Stars", value: stars, note: "from GitHub API" },
-        { label: "GitHub Contributions", value: "500+", note: "placeholder" },
-        { label: "HuggingFace Downloads", value: "10K+", note: "placeholder" },
-        { label: "Google Scholar Citations", value: "120+", note: "placeholder" },
-        { label: "Paper Count", value: "8", note: "placeholder" },
+    const stats: { label: string; value: string | number; note: string; icon?: React.ReactNode }[] = [
+        { label: "GitHub Stars", value: stars, note: "from GitHub API", icon: <Star size={16} /> },
+        { label: "GitHub Contributions", value: "500+", note: "placeholder", icon: <GitCommitHorizontal size={16} /> },
+        { label: "HuggingFace Downloads", value: "10K+", note: "placeholder", icon: <HuggingFaceIcon size={16} /> },
+        {
+            label: "Google Scholar Citations",
+            value: scholar ? scholar.citations : "–",
+            note: scholar ? `h-index: ${scholar.hIndex}` : "unavailable",
+            icon: <GraduationCap size={16} />,
+        },
+        { label: "Paper Count", value: "8", note: "placeholder", icon: <GraduationCap size={16} /> },
     ]
 
     return (
@@ -56,6 +87,17 @@ export default async function About() {
                                         <Badge variant="secondary">NLP</Badge>
                                         <Badge variant="secondary">Machine Learning</Badge>
                                         <Badge variant="secondary">Open Source</Badge>
+                                    </div>
+                                    <div className="flex gap-3 mt-3">
+                                        <a
+                                            href={SCHOLAR_URL}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-muted-foreground hover:text-foreground transition-colors"
+                                            title="Google Scholar"
+                                        >
+                                            <GraduationCap size={18} />
+                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -79,7 +121,10 @@ export default async function About() {
                     {stats.map((stat) => (
                         <Card key={stat.label}>
                             <CardHeader className="pb-1 pt-4 px-4">
-                                <CardTitle className="text-xs text-muted-foreground font-medium">{stat.label}</CardTitle>
+                                <CardTitle className="text-xs text-muted-foreground font-medium flex items-center gap-1">
+                                    {stat.icon}
+                                    {stat.label}
+                                </CardTitle>
                             </CardHeader>
                             <CardContent className="px-4 pb-4">
                                 <p className="text-2xl font-bold">{stat.value}</p>
