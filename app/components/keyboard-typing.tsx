@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { motion } from "motion/react";
 import { Keyboard } from "@/components/ui/keyboard";
+import { useTheme } from "next-themes";
+import { Sun, Moon, Mail, Github, Linkedin, GraduationCap } from "lucide-react";
 
 const NAME = "Jan Strich";
 const SUBTITLE = "PhD Candidate · Uni Hamburg";
@@ -14,6 +16,7 @@ export default function KeyboardTyping() {
     const [displayedName, setDisplayedName] = useState("");
     const [displayedSub, setDisplayedSub] = useState("");
     const [showPhoto, setShowPhoto] = useState(false);
+    const { theme, setTheme } = useTheme();
 
     useEffect(() => {
         const nameTotal = NAME.length * CHAR_DURATION;
@@ -42,20 +45,48 @@ export default function KeyboardTyping() {
     const subTyping = !nameTyping && displayedSub.length < SUBTITLE.length;
 
     return (
-        <div className="flex flex-col md:flex-row items-center justify-between gap-8 rounded-xl bg-neutral-950 py-10 px-8 mb-8">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-8 rounded-xl bg-neutral-100 dark:bg-neutral-950 py-10 px-8 mb-8">
             {/* Left: text */}
             <div className="flex flex-col gap-2 md:flex-1">
                 <div className="h-14 flex items-center">
-                    <span className="font-mono text-4xl font-bold tracking-[0.15em] text-neutral-100">
+                    <span className="font-mono text-4xl font-bold tracking-[0.15em] text-neutral-900 dark:text-neutral-100">
                         {displayedName}
                         {nameTyping && <span className="animate-pulse">|</span>}
                     </span>
                 </div>
                 <div className="h-8 flex items-center">
-                    <span className="font-mono text-base tracking-widest text-neutral-400">
+                    <span className="font-mono text-base tracking-widest text-neutral-500 dark:text-neutral-400">
                         {displayedSub}
                         {subTyping && <span className="animate-pulse">|</span>}
                     </span>
+                </div>
+                {/* Social links + theme toggle */}
+                <div className="flex items-center gap-3 mt-2">
+                    <a href="mailto:jan.strich@uni-hamburg.de" title="Email"
+                        className="text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors">
+                        <Mail size={18} />
+                    </a>
+                    <a href="https://github.com/pesc101" target="_blank" rel="noopener noreferrer" title="GitHub"
+                        className="text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors">
+                        <Github size={18} />
+                    </a>
+                    <a href="https://scholar.google.com/citations?user=ZOV6IUEAAAAJ&hl=en" target="_blank" rel="noopener noreferrer" title="Google Scholar"
+                        className="text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors">
+                        <GraduationCap size={18} />
+                    </a>
+                    <a href="https://www.linkedin.com/in/jan-strich" target="_blank" rel="noopener noreferrer" title="LinkedIn"
+                        className="text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors">
+                        <Linkedin size={18} />
+                    </a>
+                    <div className="w-px h-4 bg-neutral-300 dark:bg-neutral-700" />
+                    <button
+                        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                        title="Toggle theme"
+                        className="text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors cursor-pointer"
+                    >
+                        <Sun size={18} className="hidden dark:block" />
+                        <Moon size={18} className="block dark:hidden" />
+                    </button>
                 </div>
             </div>
 
@@ -75,7 +106,7 @@ export default function KeyboardTyping() {
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: showPhoto ? 1 : 0, scale: showPhoto ? 1 : 0.9 }}
                     transition={{ duration: 0.5 }}
-                    className="absolute inset-0 flex items-center justify-center"
+                    className="absolute inset-0 flex items-center justify-end"
                     style={{ pointerEvents: showPhoto ? "auto" : "none" }}
                 >
                     <Image
