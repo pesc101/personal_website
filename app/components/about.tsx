@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import Globe from "./globe"
 import { fetchScholarStats } from "@/lib/google-scholar"
+import { fetchGitHubStats } from "@/lib/github"
 import { GraduationCap, Star, GitCommitHorizontal } from "lucide-react"
 
 function HuggingFaceIcon({ size = 16 }: { size?: number }) {
@@ -23,43 +24,23 @@ function HuggingFaceIcon({ size = 16 }: { size?: number }) {
     )
 }
 
-const GITHUB_USERNAME = "janstrich"
+const GITHUB_USERNAME = "pesc101"
 const SCHOLAR_USER_ID = "ZOV6IUEAAAAJ"
 const SCHOLAR_URL = `https://scholar.google.com/citations?user=${SCHOLAR_USER_ID}`
 
-interface GitHubRepo {
-    stargazers_count: number
-}
-
-async function getGitHubStats() {
-    try {
-        const res = await fetch(`https://api.github.com/users/${GITHUB_USERNAME}/repos`, {
-            next: { revalidate: 3600 },
-        })
-        if (!res.ok) return { stars: 0 }
-        const repos: unknown = await res.json()
-        if (!Array.isArray(repos)) return { stars: 0 }
-        const stars = repos.reduce(
-            (acc: number, repo: GitHubRepo) => acc + (repo.stargazers_count ?? 0),
-            0
-        )
-        return { stars }
-    } catch {
-        return { stars: 0 }
-    }
-}
-
 export default async function About() {
     const [ghResult, scholarResult] = await Promise.allSettled([
-        getGitHubStats(),
+        fetchGitHubStats(GITHUB_USERNAME),
         fetchScholarStats(SCHOLAR_USER_ID),
     ])
-    const { stars } = ghResult.status === "fulfilled" ? ghResult.value : { stars: 0 }
+    const { totalStars, totalContributions } = ghResult.status === "fulfilled"
+        ? ghResult.value
+        : { totalStars: 0, totalContributions: 0 }
     const scholar = scholarResult.status === "fulfilled" ? scholarResult.value : null
 
     const stats: { label: string; value: string | number; note: string; icon?: React.ReactNode }[] = [
-        { label: "GitHub Stars", value: stars, note: "from GitHub API", icon: <Star size={16} /> },
-        { label: "GitHub Contributions", value: "500+", note: "placeholder", icon: <GitCommitHorizontal size={16} /> },
+        { label: "GitHub Stars", value: totalStars, note: "across public repos", icon: <Star size={16} /> },
+        { label: "GitHub Contributions", value: totalContributions, note: "this year", icon: <GitCommitHorizontal size={16} /> },
         { label: "HuggingFace Downloads", value: "10K+", note: "placeholder", icon: <HuggingFaceIcon size={16} /> },
         {
             label: "Google Scholar Citations",
