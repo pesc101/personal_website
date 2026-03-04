@@ -3,16 +3,22 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 
+const GITHUB_USERNAME = "janstrich"
+
+interface GitHubRepo {
+  stargazers_count: number
+}
+
 async function getGitHubStats() {
   try {
-    const res = await fetch("https://api.github.com/users/janstrich/repos", {
+    const res = await fetch(`https://api.github.com/users/${GITHUB_USERNAME}/repos`, {
       next: { revalidate: 3600 },
     })
     if (!res.ok) return { stars: 0 }
     const repos: unknown = await res.json()
     if (!Array.isArray(repos)) return { stars: 0 }
     const stars = repos.reduce(
-      (acc: number, repo: { stargazers_count: number }) => acc + (repo.stargazers_count ?? 0),
+      (acc: number, repo: GitHubRepo) => acc + (repo.stargazers_count ?? 0),
       0
     )
     return { stars }
