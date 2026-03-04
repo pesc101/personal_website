@@ -11,7 +11,10 @@ async function getGitHubStats() {
     if (!res.ok) return { stars: 0 }
     const repos: unknown = await res.json()
     if (!Array.isArray(repos)) return { stars: 0 }
-    const stars = repos.reduce((acc: number, repo: { stargazers_count: number }) => acc + (repo.stargazers_count ?? 0), 0)
+    const stars = repos.reduce(
+      (acc: number, repo: { stargazers_count: number }) => acc + (repo.stargazers_count ?? 0),
+      0
+    )
     return { stars }
   } catch {
     return { stars: 0 }
